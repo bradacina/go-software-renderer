@@ -12,26 +12,6 @@ type tga struct {
 	data   []byte
 }
 
-type tgaHeaderImageSpec struct {
-	xOrigin    uint16
-	yOrigin    uint16
-	width      uint16
-	height     uint16
-	pixelDepth byte
-	imageDesc  byte
-}
-
-type tgaHeader struct {
-	idLength     byte
-	colorMapType byte
-	imageType    byte
-	colorMapSpec [5]byte
-	imageSpec    tgaHeaderImageSpec
-	imageID      []byte
-	colorMapData []byte
-	imageData    []byte
-}
-
 type ARGB struct {
 	Alpha byte
 	Red   byte
@@ -41,7 +21,7 @@ type ARGB struct {
 
 type TgaImage interface {
 	Save(fileName string)
-	Draw(x, y int, color ARGB)
+	Draw(x, y int, color *ARGB)
 }
 
 func NewTgaImage(width, height int) TgaImage {
@@ -71,7 +51,7 @@ func (tga *tga) Save(filename string) {
 	binary.Write(f, byteOrder, tga.data)
 }
 
-func (tga *tga) Draw(x, y int, color ARGB) {
+func (tga *tga) Draw(x, y int, color *ARGB) {
 	index := (x*tga.width + y) * 4
 
 	tga.data[index] = byte(color.Blue)
