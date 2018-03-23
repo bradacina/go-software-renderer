@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+	"math/rand"
+
 	"github.com/bradacina/go-software-renderer/obj"
 	"github.com/bradacina/go-software-renderer/renderer"
 	"github.com/bradacina/go-software-renderer/tga"
@@ -14,7 +17,7 @@ func main() {
 	tga.Save(image.Width, image.Height, image.Data, "test.tga")
 }
 
-func min(a, b float32) float32 {
+func min(a, b float64) float64 {
 	if a > b {
 		return b
 	}
@@ -22,7 +25,7 @@ func min(a, b float32) float32 {
 	return a
 }
 
-func max(a, b float32) float32 {
+func max(a, b float64) float64 {
 	if a > b {
 		return a
 	}
@@ -32,22 +35,28 @@ func max(a, b float32) float32 {
 
 func drawObj(o *obj.Obj, b *renderer.Buffer) {
 
-	color := renderer.ARGB{255, 255, 255, 255}
-	height := float32(b.Height-1) / 2
-	width := float32(b.Width-1) / 2
+	color := renderer.ARGB{Alpha: 255}
+	vertices := [3]renderer.Vertex{}
+	halfHeight := float64(b.Height-1) / 2
+	halfWidth := float64(b.Width-1) / 2
 
 	for _, f := range o.Faces {
-		for i := 0; i < 3; i++ {
-			v1 := o.Vertices[f[i]-1]
-			v2 := o.Vertices[f[(i+1)%3]-1]
 
-			x1 := int((v1.X + 1) * height)
-			y1 := int((v1.Y + 1) * width)
+		color.Red = byte(rand.Intn(256))
+		color.Green = byte(rand.Intn(256))
+		color.Blue = byte(rand.Intn(256))
 
-			x2 := int((v2.X + 1) * height)
-			y2 := int((v2.Y + 1) * width)
+		objVertexToRendererVertex(o.Vertices[f[0]-1], &vertices[0], halfWidth, halfHeight)
+		objVertexToRendererVertex(o.Vertices[f[1]-1], &vertices[1], halfWidth, halfHeight)
+		objVertexToRendererVertex(o.Vertices[f[2]-1], &vertices[2], halfWidth, halfHeight)
 
-			b.DrawLine(x1, y1, x2, y2, &color)
-		}
+		b.Triangle(&vertices, &color)
 	}
+}
+
+func objVertexToRendererVertex(ov *obj.Vertex, rv *renderer.Vertex, halfWidth, halfHeight float64) {
+	rv.X = int((ov.X + 1) * halfHeight)
+	rv.Y = int((ov.Y + 1) * halfWidth)
+
+	log.Println(rv)
 }

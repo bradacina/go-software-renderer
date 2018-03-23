@@ -12,3 +12,18 @@ type ARGB struct {
 	Green byte
 	Blue  byte
 }
+
+type Point struct {
+	X int
+	Y int
+}
+
+type Vertex struct {
+	X float64
+	Y float64
+	Z float64
+}
+
+type Vector struct {
+	Vertex
+}

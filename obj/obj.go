@@ -9,9 +9,9 @@ import (
 )
 
 type Vertex struct {
-	X float32
-	Y float32
-	Z float32
+	X float64
+	Y float64
+	Z float64
 }
 
 type Obj struct {
@@ -74,7 +74,7 @@ func parseVertex(line string, obj *Obj) {
 		return
 	}
 
-	obj.Vertices = append(obj.Vertices, &Vertex{X: float32(x), Y: float32(y), Z: float32(z)})
+	obj.Vertices = append(obj.Vertices, &Vertex{X: float64(x), Y: float64(y), Z: float64(z)})
 }
 
 func parseFace(line string, obj *Obj) {
