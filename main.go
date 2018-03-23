@@ -1,9 +1,6 @@
 package main
 
 import (
-	"log"
-	"math/rand"
-
 	"github.com/bradacina/go-software-renderer/obj"
 	"github.com/bradacina/go-software-renderer/renderer"
 	"github.com/bradacina/go-software-renderer/tga"
@@ -33,30 +30,45 @@ func max(a, b float64) float64 {
 	return b
 }
 
-func drawObj(o *obj.Obj, b *renderer.Buffer) {
+func drawObj(o *obj.Obj, gb *renderer.Buffer) {
 
 	color := renderer.ARGB{Alpha: 255}
-	vertices := [3]renderer.Vertex{}
-	halfHeight := float64(b.Height-1) / 2
-	halfWidth := float64(b.Width-1) / 2
+	a, b, c := renderer.Vertex{}, renderer.Vertex{}, renderer.Vertex{}
+	vertices := [3]renderer.Point{}
+	halfHeight := float64(gb.Height-1) / 2
+	halfWidth := float64(gb.Width-1) / 2
+
+	light := &renderer.Vector{renderer.Vertex{0, 0, 1}}
+
+	renderer.Normalize(light)
 
 	for _, f := range o.Faces {
 
-		color.Red = byte(rand.Intn(256))
-		color.Green = byte(rand.Intn(256))
-		color.Blue = byte(rand.Intn(256))
+		objVertexToRenderVertex(o.Vertices[f[0]-1], &a)
+		objVertexToRenderVertex(o.Vertices[f[1]-1], &b)
+		objVertexToRenderVertex(o.Vertices[f[2]-1], &c)
+		color.Alpha = 255
+		renderer.GrayShade(&a, &b, &c, light, &color)
 
-		objVertexToRendererVertex(o.Vertices[f[0]-1], &vertices[0], halfWidth, halfHeight)
-		objVertexToRendererVertex(o.Vertices[f[1]-1], &vertices[1], halfWidth, halfHeight)
-		objVertexToRendererVertex(o.Vertices[f[2]-1], &vertices[2], halfWidth, halfHeight)
+		if color.Alpha == 0 {
+			continue
+		}
 
-		b.Triangle(&vertices, &color)
+		objVertexToPoint(o.Vertices[f[0]-1], &vertices[0], halfWidth, halfHeight)
+		objVertexToPoint(o.Vertices[f[1]-1], &vertices[1], halfWidth, halfHeight)
+		objVertexToPoint(o.Vertices[f[2]-1], &vertices[2], halfWidth, halfHeight)
+
+		gb.Triangle(&vertices, &color)
 	}
 }
 
-func objVertexToRendererVertex(ov *obj.Vertex, rv *renderer.Vertex, halfWidth, halfHeight float64) {
+func objVertexToPoint(ov *obj.Vertex, rv *renderer.Point, halfWidth, halfHeight float64) {
 	rv.X = int((ov.X + 1) * halfHeight)
 	rv.Y = int((ov.Y + 1) * halfWidth)
+}
 
-	log.Println(rv)
+func objVertexToRenderVertex(ov *obj.Vertex, rv *renderer.Vertex) {
+	rv.X = ov.X
+	rv.Y = ov.Y
+	rv.Z = ov.Z
 }
