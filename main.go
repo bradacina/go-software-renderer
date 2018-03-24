@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	image := renderer.NewBuffer(1000, 1000)
+	image := renderer.NewBuffer(1000, 1000, true)
 	o := obj.Load("african_head.obj")
 
 	drawObj(o, image)
@@ -34,9 +34,6 @@ func drawObj(o *obj.Obj, gb *renderer.Buffer) {
 
 	color := renderer.ARGB{Alpha: 255}
 	a, b, c := renderer.Vertex{}, renderer.Vertex{}, renderer.Vertex{}
-	vertices := [3]renderer.Point{}
-	halfHeight := float64(gb.Height-1) / 2
-	halfWidth := float64(gb.Width-1) / 2
 
 	light := &renderer.Vector{renderer.Vertex{0, 0, 1}}
 
@@ -54,11 +51,7 @@ func drawObj(o *obj.Obj, gb *renderer.Buffer) {
 			continue
 		}
 
-		objVertexToPoint(o.Vertices[f[0]-1], &vertices[0], halfWidth, halfHeight)
-		objVertexToPoint(o.Vertices[f[1]-1], &vertices[1], halfWidth, halfHeight)
-		objVertexToPoint(o.Vertices[f[2]-1], &vertices[2], halfWidth, halfHeight)
-
-		gb.Triangle(&vertices, &color)
+		gb.Triangle(&a, &b, &c, &color)
 	}
 }
 

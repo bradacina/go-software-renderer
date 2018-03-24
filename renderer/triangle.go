@@ -1,33 +1,59 @@
 package renderer
 
 import (
+	"log"
 	"math"
 )
 
-func (b *Buffer) Triangle(vertices *[3]Point, color *ARGB) {
-	topLeft, bottomRight := bBox(vertices)
+func (buf *Buffer) Triangle(a, b, c *Vertex, color *ARGB) {
+	ap := buf.Vertex2Point(a)
+	bp := buf.Vertex2Point(b)
+	cp := buf.Vertex2Point(c)
 
+	log.Println(ap, bp, cp)
+
+	topLeft, bottomRight := bBox(ap, bp, cp)
 	tempVertex := Point{}
+
+	vertices := [3]*Point{ap, bp, cp}
 
 	for i := topLeft.X; i <= bottomRight.X; i++ {
 		for j := topLeft.Y; j <= bottomRight.Y; j++ {
+			if i < 0 || i >= buf.Height ||
+				j < 0 || j >= buf.Width {
+				continue
+			}
+
 			tempVertex.X = i
 			tempVertex.Y = j
-			if isInTriangle(&tempVertex, vertices) &&
-				// clip the triangle if outside the image boundaries
-				i >= 0 && i < b.Height &&
-				j >= 0 && j < b.Width {
-				b.Draw(i, j, color)
+
+			u, v, w := barycentric(&tempVertex, &vertices)
+
+			if u < 0 || v < 0 || w < 0 {
+				continue
 			}
+
+			// depth buffer comparison
+			z := u*a.Z + v*b.Z + w*c.Z
+			if buf.DepthBuf[i*buf.Width+j] > z {
+				continue
+			}
+
+			buf.DepthBuf[i*buf.Width+j] = z
+			buf.Draw(i, j, color)
 		}
 	}
 }
 
-func isInTriangle(p *Point, vertices *[3]Point) bool {
+func (b *Buffer) Vertex2Point(v *Vertex) *Point {
+	return &Point{int((v.X + 1) * b.halfHeight), int((v.Y + 1) * b.halfWidth)}
+}
+
+func barycentric(p *Point, vertices *[3]*Point) (u, v, w float64) {
 	// Compute vectors
-	v0 := VectorFromPoints(&vertices[0], &vertices[2])
-	v1 := VectorFromPoints(&vertices[0], &vertices[1])
-	v2 := VectorFromPoints(&vertices[0], p)
+	v0 := VectorFromPoints(vertices[0], vertices[2])
+	v1 := VectorFromPoints(vertices[0], vertices[1])
+	v2 := VectorFromPoints(vertices[0], p)
 
 	// Compute dot products
 	dot00 := dot(v0, v0)
@@ -38,14 +64,11 @@ func isInTriangle(p *Point, vertices *[3]Point) bool {
 
 	// Compute barycentric coordinates
 	invDenom := 1 / float64(dot00*dot11-dot01*dot01)
-	u := float64(dot11*dot02-dot01*dot12) * invDenom
-	v := float64(dot00*dot12-dot01*dot02) * invDenom
+	u = float64(dot11*dot02-dot01*dot12) * invDenom
+	v = float64(dot00*dot12-dot01*dot02) * invDenom
+	w = 1 - u - v
 
-	if u < 0 || v < 0 || u+v > 1 {
-		return false
-	}
-
-	return true
+	return u, v, w
 }
 
 func dot(v1, v2 *Point) int {
@@ -57,16 +80,14 @@ func VectorFromPoints(tail, head *Point) *Point {
 }
 
 // Calculates a bounding box for a triangle
-func bBox(vertices *[3]Point) (*Point, *Point) {
+func bBox(a, b, c *Point) (*Point, *Point) {
 	minX, minY := math.MaxInt32, math.MaxInt32
 	maxX, maxY := math.MinInt32, math.MinInt32
 
-	for _, v := range *vertices {
-		minX = min(minX, v.X)
-		minY = min(minY, v.Y)
-		maxX = max(maxX, v.X)
-		maxY = max(maxY, v.Y)
-	}
+	minX = min(min(min(minX, a.X), b.X), c.X)
+	minY = min(min(min(minY, a.Y), b.Y), c.Y)
+	maxX = max(max(max(minX, a.X), b.X), c.X)
+	maxY = max(max(max(minY, a.Y), b.Y), c.Y)
 
 	return &Point{X: minX, Y: minY}, &Point{X: maxX, Y: maxY}
 }

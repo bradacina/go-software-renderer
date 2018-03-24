@@ -1,9 +1,12 @@
 package renderer
 
 type Buffer struct {
-	Width  int
-	Height int
-	Data   []byte
+	Width      int
+	Height     int
+	Data       []byte
+	DepthBuf   []float64
+	halfWidth  float64
+	halfHeight float64
 }
 
 type ARGB struct {
