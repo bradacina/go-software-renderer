@@ -7,11 +7,34 @@ import (
 )
 
 func main() {
-	image := renderer.NewBuffer(1000, 1000, true)
-	o := obj.Load("african_head.obj")
+	/*
+		image := renderer.NewBuffer(1000, 1000, true)
+		o := obj.Load("african_head.obj")
 
-	drawObj(o, image)
-	tga.Save(image.Width, image.Height, image.Data, "test.tga")
+		drawObj(o, image)
+		tga.Save(image.Width, image.Height, image.Data, "test.tga")
+	*/
+
+	width, height, _, data := tga.Load("xxx.tga")
+
+	img := renderer.NewBuffer(width, height, false)
+
+	var color renderer.RGBA
+
+	for i := 0; i < width; i++ {
+		for j := 0; j < height; j++ {
+			idx := (j*width + i) * 4
+			color.Blue = (*data)[idx]
+			color.Green = (*data)[idx+1]
+			color.Red = (*data)[idx+2]
+			color.Alpha = (*data)[idx+3]
+
+			img.Draw(i, j, &color)
+		}
+	}
+
+	tga.Save(width, height, img.Data, "test.tga")
+
 }
 
 func min(a, b float64) float64 {
@@ -32,7 +55,7 @@ func max(a, b float64) float64 {
 
 func drawObj(o *obj.Obj, gb *renderer.Buffer) {
 
-	color := renderer.ARGB{Alpha: 255}
+	color := renderer.RGBA{Alpha: 255}
 	a, b, c := renderer.Vertex{}, renderer.Vertex{}, renderer.Vertex{}
 
 	light := &renderer.Vector{renderer.Vertex{0, 0, 1}}

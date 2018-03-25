@@ -1,24 +1,28 @@
 package renderer
 
 import (
-	"log"
 	"math"
 )
 
-func (buf *Buffer) Triangle(a, b, c *Vertex, color *ARGB) {
+//Triangle draws a triangle from 3D space onto the Buffer with specified color
+func (buf *Buffer) Triangle(a, b, c *Vertex, color *RGBA) {
+
+	// bring the triangle into 2D (Buffer) space
 	ap := buf.Vertex2Point(a)
 	bp := buf.Vertex2Point(b)
 	cp := buf.Vertex2Point(c)
 
-	log.Println(ap, bp, cp)
-
 	topLeft, bottomRight := bBox(ap, bp, cp)
+
 	tempVertex := Point{}
 
 	vertices := [3]*Point{ap, bp, cp}
 
+	// fix in the triangle using the pixels in the bounding box
 	for i := topLeft.X; i <= bottomRight.X; i++ {
 		for j := topLeft.Y; j <= bottomRight.Y; j++ {
+
+			// test if pixel is within the Buffer
 			if i < 0 || i >= buf.Height ||
 				j < 0 || j >= buf.Width {
 				continue
@@ -29,24 +33,29 @@ func (buf *Buffer) Triangle(a, b, c *Vertex, color *ARGB) {
 
 			u, v, w := barycentric(&tempVertex, &vertices)
 
+			// test if pixel is within the triangle
 			if u < 0 || v < 0 || w < 0 {
 				continue
 			}
 
-			// depth buffer comparison
-			z := u*a.Z + v*b.Z + w*c.Z
-			if buf.DepthBuf[i*buf.Width+j] > z {
-				continue
+			// depth buffer test
+			if buf.DepthBuf != nil {
+				z := u*a.Z + v*b.Z + w*c.Z
+				if buf.DepthBuf[i*buf.Width+j] > z {
+					continue
+				}
+
+				buf.DepthBuf[i*buf.Width+j] = z
 			}
 
-			buf.DepthBuf[i*buf.Width+j] = z
 			buf.Draw(i, j, color)
 		}
 	}
 }
 
-func (b *Buffer) Vertex2Point(v *Vertex) *Point {
-	return &Point{int((v.X + 1) * b.halfHeight), int((v.Y + 1) * b.halfWidth)}
+// Vertex2Point creates a Point from a Vertex
+func (buf *Buffer) Vertex2Point(v *Vertex) *Point {
+	return &Point{int((v.X + 1) * buf.halfHeight), int((v.Y + 1) * buf.halfWidth)}
 }
 
 func barycentric(p *Point, vertices *[3]*Point) (u, v, w float64) {
@@ -75,11 +84,12 @@ func dot(v1, v2 *Point) int {
 	return v1.X*v2.X + v1.Y*v2.Y
 }
 
+// VectorFromPoints creates a Vector from 2 Points
 func VectorFromPoints(tail, head *Point) *Point {
 	return &Point{X: head.X - tail.X, Y: head.Y - tail.Y}
 }
 
-// Calculates a bounding box for a triangle
+// Calculates a bounding box for a screen triangle
 func bBox(a, b, c *Point) (*Point, *Point) {
 	minX, minY := math.MaxInt32, math.MaxInt32
 	maxX, maxY := math.MinInt32, math.MinInt32

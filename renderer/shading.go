@@ -1,9 +1,11 @@
 package renderer
 
-func GrayShade(a, b, c *Vertex, lightVector *Vector, color *ARGB) {
+//GrayShade determines the gray shade color of a triangle given a light direction
+func GrayShade(a, b, c *Vertex, lightVector *Vector, color *RGBA) {
 	v0 := VectorFromVertex(a, b)
 	v1 := VectorFromVertex(a, c)
 
+	// calculate the normal of the triangle face
 	normal := CrossProduct(v0, v1)
 	Normalize(normal)
 
