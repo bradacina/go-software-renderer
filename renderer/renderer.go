@@ -6,7 +6,8 @@ type Buffer struct {
 	Height int
 
 	// pixel information
-	Data []byte
+	Data      []byte
+	DebugData []byte
 
 	// depth buf information
 	DepthBuf []float64

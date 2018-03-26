@@ -14,9 +14,15 @@ type Vertex struct {
 	Z float64
 }
 
+type Face struct {
+	VertexIndex        [3]int
+	VertexTextureIndex [3]int
+}
+
 type Obj struct {
-	Vertices []*Vertex
-	Faces    []*[3]int
+	Vertices        []*Vertex
+	Faces           []*Face
+	VerticesTexture []*Vertex
 }
 
 func Load(filename string) *Obj {
@@ -37,8 +43,13 @@ func Load(filename string) *Obj {
 			continue
 		}
 
-		if line[0] == 'v' && line[1] == ' ' {
-			parseVertex(line, result)
+		if line[0] == 'v' {
+			if line[1] == ' ' {
+				parseVertex(line, result)
+			}
+			if line[1] == 't' {
+				parseVertexTexture(line, result)
+			}
 		}
 
 		if line[0] == 'f' {
@@ -47,6 +58,30 @@ func Load(filename string) *Obj {
 	}
 
 	return result
+}
+
+func parseVertexTexture(line string, obj *Obj) {
+	line = strings.Replace(line, "  ", " ", -1)
+	tokens := strings.Split(line, " ")
+	if len(tokens) < 3 {
+		log.Println("Encountered corrupt vertex texture at", line)
+		return
+	}
+
+	x, err := strconv.ParseFloat(tokens[1], 32)
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
+	y, err := strconv.ParseFloat(tokens[2], 32)
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
+	obj.VerticesTexture = append(obj.VerticesTexture,
+		&Vertex{X: float64(x), Y: float64(y)})
 }
 
 func parseVertex(line string, obj *Obj) {
@@ -91,7 +126,19 @@ func parseFace(line string, obj *Obj) {
 		return
 	}
 
+	vt1, err := strconv.Atoi(tokens[2])
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
 	v2, err := strconv.Atoi(tokens[4])
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
+	vt2, err := strconv.Atoi(tokens[5])
 	if err != nil {
 		log.Println(err, line)
 		return
@@ -103,5 +150,12 @@ func parseFace(line string, obj *Obj) {
 		return
 	}
 
-	obj.Faces = append(obj.Faces, &[3]int{v1, v2, v3})
+	vt3, err := strconv.Atoi(tokens[8])
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
+	obj.Faces = append(obj.Faces,
+		&Face{VertexIndex: [3]int{v1, v2, v3}, VertexTextureIndex: [3]int{vt1, vt2, vt3}})
 }

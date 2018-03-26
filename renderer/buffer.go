@@ -1,6 +1,7 @@
 package renderer
 
 import (
+	"log"
 	"math"
 )
 
@@ -16,6 +17,7 @@ func NewBuffer(width, height int, depthBuf bool) *Buffer {
 		Height:     height,
 		halfWidth:  float64(width-1) / 2,
 		halfHeight: float64(height-1) / 2,
+		DebugData:  make([]byte, width*height*4),
 		Data:       make([]byte, width*height*4)}
 
 	if depthBuf {
@@ -44,10 +46,17 @@ func (b *Buffer) Draw(col, row int, color *RGBA) {
 
 func (b *Buffer) Read(col, row int) *RGBA {
 	if col < 0 || col >= b.Width || row < 0 || row >= b.Height {
+		log.Println("Trying to read from outide the buffer", col, row)
 		return &RGBA{}
 	}
 
 	index := (row*b.Width + col) * 4
+
+	b.DebugData[index] = 0
+	b.DebugData[index+1] = 0
+	b.DebugData[index+2] = 255
+	b.DebugData[index+3] = 255
+
 	return &RGBA{
 		Blue:  b.Data[index],
 		Green: b.Data[index+1],
