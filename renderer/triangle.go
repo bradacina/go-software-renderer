@@ -11,6 +11,13 @@ func (buf *Buffer) TexturedTriangle(
 	tex *Buffer,
 	light *Vector) {
 
+	intensity := ColorIntensity(a, b, c, light)
+
+	// backface cull
+	if intensity < 0 {
+		return
+	}
+
 	// bring the triangle into 2D (Buffer) space
 	ap := buf.Vertex2Point(a)
 	bp := buf.Vertex2Point(b)
@@ -23,17 +30,17 @@ func (buf *Buffer) TexturedTriangle(
 	vertices := [3]*Point{ap, bp, cp}
 
 	// fill in the triangle using the pixels in the bounding box
-	for i := topLeft.X; i <= bottomRight.X; i++ {
-		for j := topLeft.Y; j <= bottomRight.Y; j++ {
+	for col := topLeft.X; col <= bottomRight.X; col++ {
+		for row := topLeft.Y; row <= bottomRight.Y; row++ {
 
 			// test if pixel is within the Buffer
-			if i < 0 || i >= buf.Height ||
-				j < 0 || j >= buf.Width {
+			if col < 0 || col >= buf.Width ||
+				row < 0 || row >= buf.Height {
 				continue
 			}
 
-			tempVertex.X = i
-			tempVertex.Y = j
+			tempVertex.X = col
+			tempVertex.Y = row
 
 			u, v, w := barycentric(&tempVertex, &vertices)
 
@@ -45,14 +52,17 @@ func (buf *Buffer) TexturedTriangle(
 			// depth buffer test
 			if buf.DepthBuf != nil {
 				z := u*a.Z + v*b.Z + w*c.Z
-				if buf.DepthBuf[i*buf.Width+j] > z {
+				if buf.DepthBuf[row*buf.Width+col] > z {
 					continue
 				}
 
-				buf.DepthBuf[i*buf.Width+j] = z
+				buf.DepthBuf[row*buf.Width+col] = z
 			}
 
 			color := resolveColor(at, bt, ct, tex, u, v, w)
+			color.Blue = byte(float64(color.Blue) * intensity)
+			color.Green = byte(float64(color.Green) * intensity)
+			color.Red = byte(float64(color.Red) * intensity)
 
 			if color.Alpha <= 0 {
 				log.Println("tried to read from outside texture buffer")
@@ -60,9 +70,8 @@ func (buf *Buffer) TexturedTriangle(
 				continue
 			}
 
-			//ColorIntensity(a, b, c, light, color)
+			buf.Draw(col, row, color)
 
-			buf.Draw(i, j, color)
 		}
 	}
 }
@@ -82,17 +91,17 @@ func (buf *Buffer) Triangle(a, b, c *Vertex, color *RGBA) {
 	vertices := [3]*Point{ap, bp, cp}
 
 	// fix in the triangle using the pixels in the bounding box
-	for i := topLeft.X; i <= bottomRight.X; i++ {
-		for j := topLeft.Y; j <= bottomRight.Y; j++ {
+	for col := topLeft.X; col <= bottomRight.X; col++ {
+		for row := topLeft.Y; row <= bottomRight.Y; row++ {
 
 			// test if pixel is within the Buffer
-			if i < 0 || i >= buf.Width ||
-				j < 0 || j >= buf.Height {
+			if col < 0 || col >= buf.Width ||
+				row < 0 || row >= buf.Height {
 				continue
 			}
 
-			tempVertex.X = i
-			tempVertex.Y = j
+			tempVertex.X = col
+			tempVertex.Y = row
 
 			u, v, w := barycentric(&tempVertex, &vertices)
 
@@ -104,21 +113,22 @@ func (buf *Buffer) Triangle(a, b, c *Vertex, color *RGBA) {
 			// depth buffer test
 			if buf.DepthBuf != nil {
 				z := u*a.Z + v*b.Z + w*c.Z
-				if buf.DepthBuf[i*buf.Width+j] > z {
+				if buf.DepthBuf[row*buf.Width+col] > z {
 					continue
 				}
 
-				buf.DepthBuf[i*buf.Width+j] = z
+				buf.DepthBuf[row*buf.Width+col] = z
 			}
 
-			buf.Draw(j, i, color)
+			buf.Draw(col, row, color)
 		}
 	}
 }
 
 // Vertex2Point creates a Point from a Vertex
 func (buf *Buffer) Vertex2Point(v *Vertex) *Point {
-	return &Point{int((v.X + 1) * buf.halfWidth), int((v.Y + 1) * buf.halfHeight)}
+
+	return &Point{int((v.X + 1) * buf.halfWidth), int((1 - v.Y) * buf.halfHeight)}
 }
 
 func resolveColor(at, bt, ct *Point, tex *Buffer, u, v, w float64) *RGBA {
@@ -151,9 +161,9 @@ func barycentric(p *Point, vertices *[3]*Point) (u, v, w float64) {
 		return -1, -1, -1
 	}
 
-	u = float64(dot11*dot02-dot01*dot12) * invDenom
+	w = float64(dot11*dot02-dot01*dot12) * invDenom
 	v = float64(dot00*dot12-dot01*dot02) * invDenom
-	w = 1 - u - v
+	u = 1 - w - v
 	return u, v, w
 }
 
@@ -173,8 +183,8 @@ func bBox(a, b, c *Point) (*Point, *Point) {
 
 	minX = min(min(min(minX, a.X), b.X), c.X)
 	minY = min(min(min(minY, a.Y), b.Y), c.Y)
-	maxX = max(max(max(minX, a.X), b.X), c.X)
-	maxY = max(max(max(minY, a.Y), b.Y), c.Y)
+	maxX = max(max(max(maxX, a.X), b.X), c.X)
+	maxY = max(max(max(maxY, a.Y), b.Y), c.Y)
 
 	return &Point{X: minX, Y: minY}, &Point{X: maxX, Y: maxY}
 }

@@ -6,8 +6,7 @@ type Buffer struct {
 	Height int
 
 	// pixel information
-	Data      []byte
-	DebugData []byte
+	Data []byte
 
 	// depth buf information
 	DepthBuf []float64
@@ -24,6 +23,11 @@ type RGBA struct {
 	Green byte
 	Red   byte
 }
+
+var (
+	ColorWhite = RGBA{Alpha: 255, Red: 255, Green: 255, Blue: 255}
+	ColorRed   = RGBA{Alpha: 255, Red: 255, Green: 0, Blue: 0}
+)
 
 // Point represents a 2D point
 type Point struct {

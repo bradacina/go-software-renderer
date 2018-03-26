@@ -15,33 +15,10 @@ func main() {
 	texture := tgaToBuffer("xxx.tga")
 	drawObj(o, texture, image)
 	tga.Save(image.Width, image.Height, image.Data, "test.tga")
-
-	//debugFaceTexture(o, texture)
-	tga.Save(texture.Width, texture.Height, texture.DebugData, "debug-data.tga")
-}
-
-func debugFaceTexture(o *obj.Obj, tex *renderer.Buffer) {
-	for _, f := range o.Faces {
-		t1 := o.VerticesTexture[f.VertexTextureIndex[0]-1]
-		t2 := o.VerticesTexture[f.VertexTextureIndex[1]-1]
-		t3 := o.VerticesTexture[f.VertexTextureIndex[2]-1]
-
-		width := float64(tex.Width)
-		height := float64(tex.Height)
-		pt1, pt2, pt3 := renderer.Point{}, renderer.Point{}, renderer.Point{}
-
-		objTexVertexToPoint(t1, &pt1, width, height)
-		objTexVertexToPoint(t2, &pt2, width, height)
-		objTexVertexToPoint(t3, &pt3, width, height)
-
-		tex.Read(pt1.X, pt1.Y)
-		tex.Read(pt2.X, pt2.Y)
-		tex.Read(pt3.X, pt3.Y)
-	}
 }
 
 func tgaToBuffer(filename string) *renderer.Buffer {
-	width, height, _, data := tga.Load("xxx.tga")
+	width, height, _, data := tga.Load(filename)
 	img := renderer.NewBuffer(width, height, false)
 
 	var color renderer.RGBA
