@@ -55,7 +55,7 @@ type Vector struct {
 	Vertex
 }
 
-type AfineVector struct {
+type AfineVertex struct {
 	X float64
 	Y float64
 	Z float64

@@ -57,7 +57,7 @@ func max(a, b float64) float64 {
 func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 
 	// 3d model triangle coords
-	a, b, c := renderer.Vertex{}, renderer.Vertex{}, renderer.Vertex{}
+	a, b, c := renderer.AfineVertex{}, renderer.AfineVertex{}, renderer.AfineVertex{}
 
 	// texture coords
 	at, bt, ct := renderer.Point{}, renderer.Point{}, renderer.Point{}
@@ -69,14 +69,16 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 	texHeight := float64(texture.Height)
 	texWidth := float64(texture.Width)
 
+	projectionMatrix := renderer.ProjectionOnCenter(2)
+
 	for idx, f := range o.Faces {
 		renderer.DebugFaceIdx = idx
 		v1Idx := f.VertexIndex[0] - 1
 		v2Idx := f.VertexIndex[1] - 1
 		v3Idx := f.VertexIndex[2] - 1
-		objVertexToRenderVertex(o.Vertices[v1Idx], &a)
-		objVertexToRenderVertex(o.Vertices[v2Idx], &b)
-		objVertexToRenderVertex(o.Vertices[v3Idx], &c)
+		objVertexToRenderAfineVertex(o.Vertices[v1Idx], &a)
+		objVertexToRenderAfineVertex(o.Vertices[v2Idx], &b)
+		objVertexToRenderAfineVertex(o.Vertices[v3Idx], &c)
 
 		vt1Idx := f.VertexTextureIndex[0] - 1
 		vt2Idx := f.VertexTextureIndex[1] - 1
@@ -86,7 +88,19 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 		objTexVertexToPoint(o.VerticesTexture[vt2Idx], &bt, texWidth, texHeight)
 		objTexVertexToPoint(o.VerticesTexture[vt3Idx], &ct, texWidth, texHeight)
 
-		gb.TexturedTriangle(&a, &b, &c, &at, &bt, &ct, texture, light)
+		// transform + project
+		var transA, transB, transC renderer.AfineVertex
+		renderer.Mul4x4WithAfineVertex(projectionMatrix, &a, &transA)
+		renderer.Mul4x4WithAfineVertex(projectionMatrix, &b, &transB)
+		renderer.Mul4x4WithAfineVertex(projectionMatrix, &c, &transC)
+
+		var postA, postB, postC renderer.Vertex
+
+		renderer.AfineVertexToVertex(&transA, &postA)
+		renderer.AfineVertexToVertex(&transB, &postB)
+		renderer.AfineVertexToVertex(&transC, &postC)
+
+		gb.TexturedTriangle(&postA, &postB, &postC, &at, &bt, &ct, texture, light)
 	}
 }
 
@@ -104,4 +118,11 @@ func objVertexToRenderVertex(ov *obj.Vertex, rv *renderer.Vertex) {
 	rv.X = ov.X
 	rv.Y = ov.Y
 	rv.Z = ov.Z
+}
+
+func objVertexToRenderAfineVertex(ov *obj.Vertex, rv *renderer.AfineVertex) {
+	rv.X = ov.X
+	rv.Y = ov.Y
+	rv.Z = ov.Z
+	rv.W = 1
 }

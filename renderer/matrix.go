@@ -9,20 +9,20 @@ func Mul4x4(a, b, result *Mat4x4) {
 
 }
 
-func VectorToAfineVector(a *Vector, b *AfineVector) {
+func VertexToAfineVertex(a *Vertex, b *AfineVertex) {
 	b.X = a.X
 	b.Y = a.Y
 	b.Z = a.Z
 	b.W = 1
 }
 
-func AfineVectorToVector(a *AfineVector, b *Vector) {
+func AfineVertexToVertex(a *AfineVertex, b *Vertex) {
 	b.X = a.X / a.W
 	b.Y = a.Y / a.W
 	b.Z = a.Z / a.W
 }
 
-func Mul4x4WithAfineVector(a *Mat4x4, b, result *AfineVector) {
+func Mul4x4WithAfineVertex(a *Mat4x4, b, result *AfineVertex) {
 	result.X = a.AA*b.X + a.AB*b.Y + a.AC*b.Z + a.AD*b.W
 	result.Y = a.BA*b.X + a.BB*b.Y + a.BC*b.Z + a.BD*b.W
 	result.Z = a.CA*b.X + a.CB*b.Y + a.CC*b.Z + a.CD*b.W
