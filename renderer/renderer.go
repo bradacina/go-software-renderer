@@ -27,6 +27,8 @@ type RGBA struct {
 var (
 	ColorWhite = RGBA{Alpha: 255, Red: 255, Green: 255, Blue: 255}
 	ColorRed   = RGBA{Alpha: 255, Red: 255, Green: 0, Blue: 0}
+	ColorBlue  = RGBA{Alpha: 255, Red: 0, Green: 0, Blue: 255}
+	ColorGreen = RGBA{Alpha: 255, Red: 0, Green: 255, Blue: 0}
 )
 
 // Point represents a 2D point

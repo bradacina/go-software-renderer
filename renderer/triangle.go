@@ -5,6 +5,31 @@ import (
 	"math"
 )
 
+var DebugFaceIdx int
+
+var isTrianglevertex bool
+
+var debugFaces = []int{}
+
+func isDebugArea(p *Point) bool {
+	if p.Y >= 631 && p.Y <= 637 &&
+		p.X >= 510 && p.X <= 514 {
+		return true
+	}
+
+	return false
+}
+
+func isDebugFace() bool {
+	for _, v := range debugFaces {
+		if v == DebugFaceIdx {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (buf *Buffer) TexturedTriangle(
 	a, b, c *Vertex,
 	at, bt, ct *Point,
@@ -70,10 +95,34 @@ func (buf *Buffer) TexturedTriangle(
 				continue
 			}
 
+			if isDebugFace() {
+				buf.Draw(col, row, &ColorRed)
+				continue
+			}
 			buf.Draw(col, row, color)
-
 		}
 	}
+
+	if isDebugFace() {
+		buf.Draw(ap.X, ap.Y, &ColorGreen)
+		buf.Draw(bp.X, bp.Y, &ColorGreen)
+		buf.Draw(cp.X, cp.Y, &ColorGreen)
+
+		// buf.Draw(ap.X+1, ap.Y+1, &ColorGreen)
+		// buf.Draw(bp.X+1, bp.Y+1, &ColorGreen)
+		// buf.Draw(cp.X+1, cp.Y+1, &ColorGreen)
+
+		buf.Draw(ap.X-1, ap.Y-1, &ColorGreen)
+		buf.Draw(bp.X-1, bp.Y-1, &ColorGreen)
+		buf.Draw(cp.X-1, cp.Y-1, &ColorGreen)
+		//buf.TriangleMesh(ap, bp, cp, &ColorRed)
+	}
+}
+
+func (buf *Buffer) TriangleMesh(a, b, c *Point, color *RGBA) {
+	buf.DrawLine(a.X, a.Y, b.X, b.Y, color)
+	buf.DrawLine(a.X, a.Y, c.X, c.Y, color)
+	buf.DrawLine(c.X, c.Y, b.X, b.Y, color)
 }
 
 //Triangle draws a triangle from 3D space onto the Buffer with specified color
@@ -128,7 +177,8 @@ func (buf *Buffer) Triangle(a, b, c *Vertex, color *RGBA) {
 // Vertex2Point creates a Point from a Vertex
 func (buf *Buffer) Vertex2Point(v *Vertex) *Point {
 
-	return &Point{int((v.X + 1) * buf.halfWidth), int((1 - v.Y) * buf.halfHeight)}
+	return &Point{int(math.RoundToEven((v.X + 1) * buf.halfWidth)),
+		int(math.RoundToEven((v.Y + 1) * buf.halfHeight))}
 }
 
 func resolveColor(at, bt, ct *Point, tex *Buffer, u, v, w float64) *RGBA {

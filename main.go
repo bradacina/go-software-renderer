@@ -69,7 +69,8 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 	texHeight := float64(texture.Height)
 	texWidth := float64(texture.Width)
 
-	for _, f := range o.Faces {
+	for idx, f := range o.Faces {
+		renderer.DebugFaceIdx = idx
 		v1Idx := f.VertexIndex[0] - 1
 		v2Idx := f.VertexIndex[1] - 1
 		v3Idx := f.VertexIndex[2] - 1

@@ -32,6 +32,7 @@ func NewBuffer(width, height int, depthBuf bool) *Buffer {
 // Draw draws a pixel onto the Buffer
 func (b *Buffer) Draw(col, row int, color *RGBA) {
 	if col < 0 || col >= b.Width || row < 0 || row >= b.Height {
+		log.Println("Trying to draw pixel outside buffer bounds")
 		return
 	}
 
