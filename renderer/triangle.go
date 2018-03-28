@@ -99,23 +99,9 @@ func (buf *Buffer) TexturedTriangle(
 				buf.Draw(col, row, &ColorRed)
 				continue
 			}
+
 			buf.Draw(col, row, color)
 		}
-	}
-
-	if isDebugFace() {
-		buf.Draw(ap.X, ap.Y, &ColorGreen)
-		buf.Draw(bp.X, bp.Y, &ColorGreen)
-		buf.Draw(cp.X, cp.Y, &ColorGreen)
-
-		// buf.Draw(ap.X+1, ap.Y+1, &ColorGreen)
-		// buf.Draw(bp.X+1, bp.Y+1, &ColorGreen)
-		// buf.Draw(cp.X+1, cp.Y+1, &ColorGreen)
-
-		buf.Draw(ap.X-1, ap.Y-1, &ColorGreen)
-		buf.Draw(bp.X-1, bp.Y-1, &ColorGreen)
-		buf.Draw(cp.X-1, cp.Y-1, &ColorGreen)
-		//buf.TriangleMesh(ap, bp, cp, &ColorRed)
 	}
 }
 
@@ -177,8 +163,10 @@ func (buf *Buffer) Triangle(a, b, c *Vertex, color *RGBA) {
 // Vertex2Point creates a Point from a Vertex
 func (buf *Buffer) Vertex2Point(v *Vertex) *Point {
 
-	return &Point{int(math.RoundToEven((v.X + 1) * buf.halfWidth)),
-		int(math.RoundToEven((v.Y + 1) * buf.halfHeight))}
+	return &Point{int(v.X) * buf.Width, int(v.Y) * buf.Height}
+	/*return &Point{int(math.RoundToEven((v.X + 1) * buf.halfWidth)),
+	int(math.RoundToEven((v.Y + 1) * buf.halfHeight))}
+	*/
 }
 
 func resolveColor(at, bt, ct *Point, tex *Buffer, u, v, w float64) *RGBA {

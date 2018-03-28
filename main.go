@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/bradacina/go-software-renderer/obj"
 	"github.com/bradacina/go-software-renderer/renderer"
 	"github.com/bradacina/go-software-renderer/tga"
@@ -69,7 +71,29 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 	texHeight := float64(texture.Height)
 	texWidth := float64(texture.Width)
 
+	cameraLocation := renderer.Vertex{0.0, 0.0, -2.0}
+	cameraDirection := renderer.Vertex{0, 0, 0}
+	cameraUp := renderer.Vector{renderer.Vertex{0, 1.0, 0}}
+
+	camera := renderer.NewCamera()
+	camera.LookAt(&cameraLocation, &cameraDirection, &cameraUp)
+
+	debugVertex := renderer.AfineVertex{X: 0, Y: 0, Z: 10, W: 1}
+	log.Println(debugVertex)
+	camera.DebugVertex(&debugVertex)
+
 	projectionMatrix := renderer.ProjectionOnCenter(2)
+	viewPortMatrix := renderer.ViewPort(0, 0, 1, 1)
+
+	var temp renderer.Mat4x4
+	var viewPipeline renderer.Mat4x4
+	renderer.Mul4x4(&temp, viewPortMatrix, &viewPipeline)
+
+	log.Println("ViewPort", viewPortMatrix)
+	log.Println("Projection", projectionMatrix)
+
+	log.Println("Viewport x Projection", temp)
+	log.Println("All", viewPipeline)
 
 	for idx, f := range o.Faces {
 		renderer.DebugFaceIdx = idx
@@ -88,11 +112,11 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 		objTexVertexToPoint(o.VerticesTexture[vt2Idx], &bt, texWidth, texHeight)
 		objTexVertexToPoint(o.VerticesTexture[vt3Idx], &ct, texWidth, texHeight)
 
-		// transform + project
+		// ViewPort * Projection * View * Model * (v)
 		var transA, transB, transC renderer.AfineVertex
-		renderer.Mul4x4WithAfineVertex(projectionMatrix, &a, &transA)
-		renderer.Mul4x4WithAfineVertex(projectionMatrix, &b, &transB)
-		renderer.Mul4x4WithAfineVertex(projectionMatrix, &c, &transC)
+		renderer.Mul4x4WithAfineVertex(viewPortMatrix, &a, &transA)
+		renderer.Mul4x4WithAfineVertex(viewPortMatrix, &b, &transB)
+		renderer.Mul4x4WithAfineVertex(viewPortMatrix, &c, &transC)
 
 		var postA, postB, postC renderer.Vertex
 

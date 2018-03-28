@@ -74,3 +74,9 @@ type Mat4x4 struct {
 	CA, CB, CC, CD,
 	DA, DB, DC, DD float64
 }
+
+type Camera struct {
+	translation AfineVertex
+	mInv        Mat4x4
+	buffer      Buffer
+}

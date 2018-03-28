@@ -5,11 +5,6 @@ import (
 	"math"
 )
 
-// Drawer is an interface that can draw a pixel
-type Drawer interface {
-	Draw(x, y int, color *RGBA)
-}
-
 // NewBuffer creates a new render Buffer
 func NewBuffer(width, height int, depthBuf bool) *Buffer {
 	result := &Buffer{
