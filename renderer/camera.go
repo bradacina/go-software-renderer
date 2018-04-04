@@ -6,13 +6,23 @@ func NewCamera() *Camera {
 	return &Camera{}
 }
 
-func ProjectionOnCenter(distance float64) *Mat4x4 {
-	result := Mat4x4Identity
-	result.DC = -1 / distance
+func Ortographic(left, right, bot, top, near, far float64) *Mat4x4 {
+	w := right - left
+	h := top - bot
+	d := far - near
 
-	return &result
+	orto := Mat4x4Identity
+	orto.AA = 2 / w
+	orto.BB = 2 / h
+	orto.CC = -2 / d
+	orto.AD = -(right + left) / w
+	orto.BD = -(top + bot) / h
+	orto.CD = -(far + near) / d
+
+	return &orto
 }
 
+//http://rextester.com/DGL86880
 func (c *Camera) LookAt(eye *Vertex, center *Vertex, up *Vector) {
 	z := VectorFromVertex(center, eye)
 	Normalize(z)
@@ -21,24 +31,21 @@ func (c *Camera) LookAt(eye *Vertex, center *Vertex, up *Vector) {
 	y := CrossProduct(z, x)
 	Normalize(y)
 
-	c.translation.X = -eye.X
-	c.translation.Y = -eye.Y
-	c.translation.Z = -eye.Z
-	c.translation.W = 0
+	c.ModelView = Mat4x4Identity
+	c.ModelView.AA = x.X
+	c.ModelView.AB = x.Y
+	c.ModelView.AC = x.Z
+	c.ModelView.AD = -dotVectorVertex(eye, x)
+	c.ModelView.BA = y.X
+	c.ModelView.BB = y.Y
+	c.ModelView.BC = y.Z
+	c.ModelView.BD = -dotVectorVertex(eye, y)
+	c.ModelView.CA = z.X
+	c.ModelView.CB = z.Y
+	c.ModelView.CC = z.Z
+	c.ModelView.CD = -dotVectorVertex(eye, z)
 
-	c.mInv = Mat4x4Identity
-	c.mInv.AA = x.X
-	c.mInv.AB = x.Y
-	c.mInv.AC = x.Z
-	c.mInv.BA = y.X
-	c.mInv.BB = y.Y
-	c.mInv.BC = y.Z
-	c.mInv.CA = z.X
-	c.mInv.CB = z.Y
-	c.mInv.CC = z.Z
-
-	log.Println("Translation", c.translation)
-	log.Println("M inv", c.mInv)
+	log.Println("ViewModel", c.ModelView)
 }
 
 //ViewPort creates a ViewPort matrix that scales
@@ -57,12 +64,6 @@ func ViewPort(x, y, w, h float64) *Mat4x4 {
 	return &viewPort
 }
 
-func (c *Camera) DebugVertex(v *AfineVertex) {
-	debugTranslate, debugMInv := AfineVertex{}, AfineVertex{}
-	TranslateAfineVertex(v, &c.translation, &debugTranslate)
-
-	Mul4x4WithAfineVertex(&c.mInv, &debugTranslate, &debugMInv)
-
-	log.Println(debugTranslate)
-	log.Println(debugMInv)
+func dotVectorVertex(v1 *Vertex, v2 *Vector) float64 {
+	return v1.X*v2.X + v1.Y*v2.Y + v1.Z*v2.Z
 }
