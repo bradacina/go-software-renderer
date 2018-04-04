@@ -12,9 +12,9 @@ func Ortographic(left, right, bot, top, near, far float64) *Mat4x4 {
 	d := far - near
 
 	orto := Mat4x4Identity
-	orto.AA = 2 / w
-	orto.BB = 2 / h
-	orto.CC = -2 / d
+	orto.AA = 2.0 / w
+	orto.BB = 2.0 / h
+	orto.CC = 2.0 / d
 	orto.AD = -(right + left) / w
 	orto.BD = -(top + bot) / h
 	orto.CD = -(far + near) / d

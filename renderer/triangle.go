@@ -166,7 +166,6 @@ func (buf *Buffer) Vertex2Point(v *Vertex) *Point {
 	//return &Point{int(v.X * float64(buf.Width)), int(v.Y * float64(buf.Height))}
 	return &Point{int(math.RoundToEven((v.X + 1) * buf.halfWidth)),
 		int(math.RoundToEven((v.Y + 1) * buf.halfHeight))}
-
 }
 
 func resolveColor(at, bt, ct *Point, tex *Buffer, u, v, w float64) *RGBA {

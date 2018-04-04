@@ -72,14 +72,14 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 	texHeight := float64(texture.Height)
 	texWidth := float64(texture.Width)
 
-	cameraLocation := renderer.Vertex{0, -0.4, -4.0}
+	cameraLocation := renderer.Vertex{60.0, -0.4, 0.0}
 	cameraDirection := renderer.Vertex{0, 0, 0}
 	cameraUp := renderer.Vector{renderer.Vertex{0, 1.0, 0}}
 
 	camera := renderer.NewCamera()
 	camera.LookAt(&cameraLocation, &cameraDirection, &cameraUp)
 
-	projectionMatrix := renderer.Ortographic(-1, 1, -1, 1, 1, 10)
+	projectionMatrix := renderer.Ortographic(-1, 1, -1, 1, -1, 1)
 	viewPortMatrix := renderer.ViewPort(0, 0, 1024, 1024)
 
 	var temp renderer.Mat4x4
@@ -119,7 +119,6 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 		objTexVertexToPoint(o.VerticesTexture[vt2Idx], &bt, texWidth, texHeight)
 		objTexVertexToPoint(o.VerticesTexture[vt3Idx], &ct, texWidth, texHeight)
 
-		// ViewPort * Projection * ViewModel * (v)
 		renderer.Mul4x4WithAfineVertex(&viewPipeline, &a, &transA)
 		renderer.Mul4x4WithAfineVertex(&viewPipeline, &b, &transB)
 		renderer.Mul4x4WithAfineVertex(&viewPipeline, &c, &transC)
