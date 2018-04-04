@@ -17,12 +17,14 @@ type Vertex struct {
 type Face struct {
 	VertexIndex        [3]int
 	VertexTextureIndex [3]int
+	VertexNormalIndex  [3]int
 }
 
 type Obj struct {
 	Vertices        []*Vertex
 	Faces           []*Face
 	VerticesTexture []*Vertex
+	VerticesNormal  []*Vertex
 }
 
 func Load(filename string) *Obj {
@@ -49,6 +51,9 @@ func Load(filename string) *Obj {
 			}
 			if line[1] == 't' {
 				parseVertexTexture(line, result)
+			}
+			if line[2] == 'n' {
+				parseVertexNormal(line, result)
 			}
 		}
 
@@ -82,6 +87,36 @@ func parseVertexTexture(line string, obj *Obj) {
 
 	obj.VerticesTexture = append(obj.VerticesTexture,
 		&Vertex{X: float64(x), Y: float64(y)})
+}
+
+func parseVertexNormal(line string, obj *Obj) {
+	line = strings.Replace(line, "  ", " ", -1)
+	tokens := strings.Split(line, " ")
+	if len(tokens) < 4 {
+		log.Println("Encountered corrupt vertex normal at", line)
+		return
+	}
+
+	x, err := strconv.ParseFloat(tokens[1], 32)
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
+	y, err := strconv.ParseFloat(tokens[2], 32)
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
+	z, err := strconv.ParseFloat(tokens[3], 32)
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
+	obj.VerticesNormal = append(obj.VerticesNormal,
+		&Vertex{X: float64(x), Y: float64(y), Z: float64(z)})
 }
 
 func parseVertex(line string, obj *Obj) {
@@ -132,6 +167,12 @@ func parseFace(line string, obj *Obj) {
 		return
 	}
 
+	vn1, err := strconv.Atoi(tokens[3])
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
 	v2, err := strconv.Atoi(tokens[4])
 	if err != nil {
 		log.Println(err, line)
@@ -139,6 +180,12 @@ func parseFace(line string, obj *Obj) {
 	}
 
 	vt2, err := strconv.Atoi(tokens[5])
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
+	vn2, err := strconv.Atoi(tokens[6])
 	if err != nil {
 		log.Println(err, line)
 		return
@@ -156,6 +203,14 @@ func parseFace(line string, obj *Obj) {
 		return
 	}
 
+	vn3, err := strconv.Atoi(tokens[9])
+	if err != nil {
+		log.Println(err, line)
+		return
+	}
+
 	obj.Faces = append(obj.Faces,
-		&Face{VertexIndex: [3]int{v1, v2, v3}, VertexTextureIndex: [3]int{vt1, vt2, vt3}})
+		&Face{VertexIndex: [3]int{v1, v2, v3},
+			VertexTextureIndex: [3]int{vt1, vt2, vt3},
+			VertexNormalIndex:  [3]int{vn1, vn2, vn3}})
 }
