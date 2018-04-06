@@ -6,24 +6,24 @@ func Mul3x3(a, b, result *Mat3x3) {
 
 func Mul4x4(a, b, result *Mat4x4) {
 	result.AA = a.AA*b.AA + a.AB*b.BA + a.AC*b.CA + a.AD*b.DA
-	result.AB = a.AA*b.BA + a.AB*b.BB + a.AC*b.BC + a.AD*b.BD
-	result.AC = a.AA*b.CA + a.AB*b.CB + a.AC*b.CC + a.AD*b.CD
-	result.AD = a.AA*b.DA + a.AB*b.DB + a.AC*b.DC + a.AD*b.DD
+	result.AB = a.AA*b.AB + a.AB*b.BB + a.AC*b.CB + a.AD*b.DB
+	result.AC = a.AA*b.AC + a.AB*b.BC + a.AC*b.CC + a.AD*b.DC
+	result.AD = a.AA*b.AD + a.AB*b.BD + a.AC*b.CD + a.AD*b.DD
 
 	result.BA = a.BA*b.AA + a.BB*b.BA + a.BC*b.CA + a.BD*b.DA
-	result.BB = a.BA*b.BA + a.BB*b.BB + a.BC*b.BC + a.BD*b.BD
-	result.BC = a.BA*b.CA + a.BB*b.CB + a.BC*b.CC + a.BD*b.CD
-	result.BD = a.BA*b.DA + a.BB*b.DB + a.BC*b.DC + a.BD*b.DD
+	result.BB = a.BA*b.AB + a.BB*b.BB + a.BC*b.CB + a.BD*b.DB
+	result.BC = a.BA*b.AC + a.BB*b.BC + a.BC*b.CC + a.BD*b.DC
+	result.BD = a.BA*b.AD + a.BB*b.BD + a.BC*b.CD + a.BD*b.DD
 
 	result.CA = a.CA*b.AA + a.CB*b.BA + a.CC*b.CA + a.CD*b.DA
-	result.CB = a.CA*b.BA + a.CB*b.BB + a.CC*b.BC + a.CD*b.BD
-	result.CC = a.CA*b.CA + a.CB*b.CB + a.CC*b.CC + a.CD*b.CD
-	result.CD = a.CA*b.DA + a.CB*b.DB + a.CC*b.DC + a.CD*b.DD
+	result.CB = a.CA*b.AB + a.CB*b.BB + a.CC*b.CB + a.CD*b.DB
+	result.CC = a.CA*b.AC + a.CB*b.BC + a.CC*b.CC + a.CD*b.DC
+	result.CD = a.CA*b.AD + a.CB*b.BD + a.CC*b.CD + a.CD*b.DD
 
 	result.DA = a.DA*b.AA + a.DB*b.BA + a.DC*b.CA + a.DD*b.DA
-	result.DB = a.DA*b.BA + a.DB*b.BB + a.DC*b.BC + a.DD*b.BD
-	result.DC = a.DA*b.CA + a.DB*b.CB + a.DC*b.CC + a.DD*b.CD
-	result.DD = a.DA*b.DA + a.DB*b.DB + a.DC*b.DC + a.DD*b.DD
+	result.DB = a.DA*b.AB + a.DB*b.BB + a.DC*b.CB + a.DD*b.DB
+	result.DC = a.DA*b.AC + a.DB*b.BC + a.DC*b.CC + a.DD*b.DC
+	result.DD = a.DA*b.AD + a.DB*b.BD + a.DC*b.CD + a.DD*b.DD
 }
 
 func VertexToAfineVertex(a *Vertex, b *AfineVertex) {

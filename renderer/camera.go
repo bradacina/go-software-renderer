@@ -15,9 +15,9 @@ func Ortographic(left, right, bot, top, near, far float64) *Mat4x4 {
 	orto.AA = 2.0 / w
 	orto.BB = 2.0 / h
 	orto.CC = 2.0 / d
-	orto.AD = -(right + left) / w
-	orto.BD = -(top + bot) / h
-	orto.CD = -(far + near) / d
+	orto.AD = -1 * (right + left) / w
+	orto.BD = -1 * (top + bot) / h
+	orto.CD = -1 * (far + near) / d
 
 	return &orto
 }
