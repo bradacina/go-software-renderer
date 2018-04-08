@@ -38,6 +38,8 @@ func (buf *Buffer) TexturedTriangle(
 
 	intensity := ColorIntensity(a, b, c, light)
 
+	log.Println("debug intentisy", intensity)
+
 	// backface cull
 	if intensity < 0 {
 		return
@@ -162,10 +164,10 @@ func (buf *Buffer) Triangle(a, b, c *Vertex, color *RGBA) {
 
 // Vertex2Point creates a Point from a Vertex
 func (buf *Buffer) Vertex2Point(v *Vertex) *Point {
-	// return &Point{int(v.X), int(v.Y)}
+	return &Point{int(v.X), int(v.Y)}
 	//return &Point{int(v.X * float64(buf.Width)), int(v.Y * float64(buf.Height))}
-	return &Point{int(math.RoundToEven((v.X + 1) * buf.halfWidth)),
-		int(math.RoundToEven((v.Y + 1) * buf.halfHeight))}
+	// return &Point{int(math.RoundToEven((v.X + 1) * buf.halfWidth)),
+	// 	int(math.RoundToEven((v.Y + 1) * buf.halfHeight))}
 }
 
 func resolveColor(at, bt, ct *Point, tex *Buffer, u, v, w float64) *RGBA {
