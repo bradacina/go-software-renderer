@@ -52,7 +52,7 @@ func Load(filename string) *Obj {
 			if line[1] == 't' {
 				parseVertexTexture(line, result)
 			}
-			if line[2] == 'n' {
+			if line[1] == 'n' {
 				parseVertexNormal(line, result)
 			}
 		}

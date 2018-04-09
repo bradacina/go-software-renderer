@@ -1,10 +1,5 @@
 package renderer
 
-type Shader interface {
-	ShadeFragment(u, v, w float64, color *RGBA)
-	ShouldIgnore() bool
-}
-
 type TextureShader struct {
 	texture        *Buffer
 	light          *Vector
@@ -74,12 +69,4 @@ func (ts *TextureShader) resolveColor(u, v, w float64, color *RGBA) {
 		Y: float64(ts.at.Y)*u + float64(ts.bt.Y)*v + float64(ts.ct.Y)*w}}
 
 	ts.texture.Read(int(p.X), int(p.Y), color)
-}
-
-func maxByte(a, b byte) byte {
-	if a >= b {
-		return a
-	}
-
-	return b
 }

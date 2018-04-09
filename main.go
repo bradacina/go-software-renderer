@@ -62,6 +62,9 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 	// 3d model triangle coords
 	a, b, c := renderer.AfineVertex{}, renderer.AfineVertex{}, renderer.AfineVertex{}
 
+	// vertex normals
+	an, bn, cn := renderer.Vertex{}, renderer.Vertex{}, renderer.Vertex{}
+
 	// texture coords
 	at, bt, ct := renderer.Point{}, renderer.Point{}, renderer.Point{}
 
@@ -122,9 +125,21 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 		objTexVertexToPoint(o.VerticesTexture[vt2Idx], &bt, texWidth, texHeight)
 		objTexVertexToPoint(o.VerticesTexture[vt3Idx], &ct, texWidth, texHeight)
 
+		// vertex normals
+		vn1Idx := f.VertexNormalIndex[0] - 1
+		vn2Idx := f.VertexNormalIndex[1] - 1
+		vn3Idx := f.VertexNormalIndex[2] - 1
+
+		objVertexToRenderVertex(o.VerticesNormal[vn1Idx], &an)
+		objVertexToRenderVertex(o.VerticesNormal[vn2Idx], &bn)
+		objVertexToRenderVertex(o.VerticesNormal[vn3Idx], &cn)
+
 		// fragment shader
-		textureShader := renderer.NewTextureShader(&postA, &postB, &postC, &at, &bt, &ct, texture, light)
-		gb.TexturedTriangle(&postA, &postB, &postC, textureShader)
+		//textureShader := renderer.NewTextureShader(&postA, &postB, &postC, &at, &bt, &ct, texture, light)
+		//gb.TexturedTriangle(&postA, &postB, &postC, textureShader)
+
+		gouraudShader := renderer.NewGouraudShader(&postA, &postB, &postC, &an, &bn, &cn, light)
+		gb.TexturedTriangle(&postA, &postB, &postC, gouraudShader)
 	}
 }
 
