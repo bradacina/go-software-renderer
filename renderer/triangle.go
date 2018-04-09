@@ -1,7 +1,6 @@
 package renderer
 
 import (
-	"log"
 	"math"
 )
 
@@ -30,18 +29,13 @@ func isDebugFace() bool {
 	return false
 }
 
+// TexturedTriangle draws a triangle using a shader
 func (buf *Buffer) TexturedTriangle(
 	a, b, c *Vertex,
-	at, bt, ct *Point,
-	tex *Buffer,
-	light *Vector) {
-
-	intensity := ColorIntensity(a, b, c, light)
-
-	log.Println("debug intentisy", intensity)
+	shader Shader) {
 
 	// backface cull
-	if intensity < 0 {
+	if shader.ShouldIgnore() {
 		return
 	}
 
@@ -55,6 +49,8 @@ func (buf *Buffer) TexturedTriangle(
 	tempVertex := Point{}
 
 	vertices := [3]*Point{ap, bp, cp}
+
+	color := RGBA{}
 
 	// fill in the triangle using the pixels in the bounding box
 	for col := topLeft.X; col <= bottomRight.X; col++ {
@@ -86,14 +82,9 @@ func (buf *Buffer) TexturedTriangle(
 				buf.DepthBuf[row*buf.Width+col] = z
 			}
 
-			color := resolveColor(at, bt, ct, tex, u, v, w)
-			color.Blue = byte(float64(color.Blue) * intensity)
-			color.Green = byte(float64(color.Green) * intensity)
-			color.Red = byte(float64(color.Red) * intensity)
+			shader.ShadeFragment(u, v, w, &color)
 
 			if color.Alpha <= 0 {
-				log.Println("tried to read from outside texture buffer")
-				log.Println(at, bt, ct, u, v, w)
 				continue
 			}
 
@@ -102,11 +93,12 @@ func (buf *Buffer) TexturedTriangle(
 				continue
 			}
 
-			buf.Draw(col, row, color)
+			buf.Draw(col, row, &color)
 		}
 	}
 }
 
+// TriangleMesh draws the outer shape of a triangle
 func (buf *Buffer) TriangleMesh(a, b, c *Point, color *RGBA) {
 	buf.DrawLine(a.X, a.Y, b.X, b.Y, color)
 	buf.DrawLine(a.X, a.Y, c.X, c.Y, color)
@@ -168,17 +160,6 @@ func (buf *Buffer) Vertex2Point(v *Vertex) *Point {
 	//return &Point{int(v.X * float64(buf.Width)), int(v.Y * float64(buf.Height))}
 	// return &Point{int(math.RoundToEven((v.X + 1) * buf.halfWidth)),
 	// 	int(math.RoundToEven((v.Y + 1) * buf.halfHeight))}
-}
-
-func resolveColor(at, bt, ct *Point, tex *Buffer, u, v, w float64) *RGBA {
-
-	p := Vector{Vertex{
-		X: float64(at.X)*u + float64(bt.X)*v + float64(ct.X)*w,
-		Y: float64(at.Y)*u + float64(bt.Y)*v + float64(ct.Y)*w}}
-
-	color := tex.Read(int(p.X), int(p.Y))
-
-	return color
 }
 
 func barycentric(p *Point, vertices *[3]*Point) (u, v, w float64) {

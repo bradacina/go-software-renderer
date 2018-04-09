@@ -97,24 +97,14 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 	var transA, transB, transC renderer.AfineVertex
 	var postA, postB, postC renderer.Vertex
 
-	maxX, maxY, maxZ := -math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64
-	minX, minY, minZ := math.MaxFloat64, math.MaxFloat64, math.MaxFloat64
-
 	for _, f := range o.Faces {
+		// vertex shader
 		v1Idx := f.VertexIndex[0] - 1
 		v2Idx := f.VertexIndex[1] - 1
 		v3Idx := f.VertexIndex[2] - 1
 		objVertexToRenderAfineVertex(o.Vertices[v1Idx], &a)
 		objVertexToRenderAfineVertex(o.Vertices[v2Idx], &b)
 		objVertexToRenderAfineVertex(o.Vertices[v3Idx], &c)
-
-		vt1Idx := f.VertexTextureIndex[0] - 1
-		vt2Idx := f.VertexTextureIndex[1] - 1
-		vt3Idx := f.VertexTextureIndex[2] - 1
-
-		objTexVertexToPoint(o.VerticesTexture[vt1Idx], &at, texWidth, texHeight)
-		objTexVertexToPoint(o.VerticesTexture[vt2Idx], &bt, texWidth, texHeight)
-		objTexVertexToPoint(o.VerticesTexture[vt3Idx], &ct, texWidth, texHeight)
 
 		renderer.Mul4x4WithAfineVertex(&viewPipeline, &a, &transA)
 		renderer.Mul4x4WithAfineVertex(&viewPipeline, &b, &transB)
@@ -124,14 +114,18 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 		renderer.AfineVertexToVertex(&transB, &postB)
 		renderer.AfineVertexToVertex(&transC, &postC)
 
-		bbox(&maxX, &minX, &maxY, &minY, &maxZ, &minZ, &postA, &postB, &postC)
+		vt1Idx := f.VertexTextureIndex[0] - 1
+		vt2Idx := f.VertexTextureIndex[1] - 1
+		vt3Idx := f.VertexTextureIndex[2] - 1
 
-		gb.TexturedTriangle(&postA, &postB, &postC, &at, &bt, &ct, texture, light)
+		objTexVertexToPoint(o.VerticesTexture[vt1Idx], &at, texWidth, texHeight)
+		objTexVertexToPoint(o.VerticesTexture[vt2Idx], &bt, texWidth, texHeight)
+		objTexVertexToPoint(o.VerticesTexture[vt3Idx], &ct, texWidth, texHeight)
+
+		// fragment shader
+		textureShader := renderer.NewTextureShader(&postA, &postB, &postC, &at, &bt, &ct, texture, light)
+		gb.TexturedTriangle(&postA, &postB, &postC, textureShader)
 	}
-
-	log.Println("minX", minX, "maxX", maxX)
-	log.Println("minY", minY, "maxY", maxY)
-	log.Println("minZ", minZ, "maxZ", maxZ)
 }
 
 func bbox(maxX, minX, maxY, minY, maxZ, minZ *float64, a, b, c *renderer.Vertex) {

@@ -39,17 +39,19 @@ func (b *Buffer) Draw(col, row int, color *RGBA) {
 	b.Data[index+3] = color.Alpha
 }
 
-func (b *Buffer) Read(col, row int) *RGBA {
+func (b *Buffer) Read(col, row int, color *RGBA) {
 	if col < 0 || col >= b.Width || row < 0 || row >= b.Height {
 		log.Println("Trying to read from outide the buffer", col, row)
-		return &RGBA{}
+		color.Alpha = 0
+		color.Red = 0
+		color.Blue = 0
+		color.Green = 0
 	}
 
 	index := (row*b.Width + col) * 4
 
-	return &RGBA{
-		Blue:  b.Data[index],
-		Green: b.Data[index+1],
-		Red:   b.Data[index+2],
-		Alpha: b.Data[index+3]}
+	color.Blue = b.Data[index]
+	color.Green = b.Data[index+1]
+	color.Red = b.Data[index+2]
+	color.Alpha = b.Data[index+3]
 }
