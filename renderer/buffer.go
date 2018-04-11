@@ -8,11 +8,9 @@ import (
 // NewBuffer creates a new render Buffer
 func NewBuffer(width, height int, depthBuf bool) *Buffer {
 	result := &Buffer{
-		Width:      width,
-		Height:     height,
-		halfWidth:  float64(width-1) / 2,
-		halfHeight: float64(height-1) / 2,
-		Data:       make([]byte, width*height*4)}
+		Width:  width,
+		Height: height,
+		Data:   make([]byte, width*height*4)}
 
 	if depthBuf {
 		result.DepthBuf = make([]float64, width*height)
@@ -54,4 +52,17 @@ func (b *Buffer) Read(col, row int, color *RGBA) {
 	color.Green = b.Data[index+1]
 	color.Red = b.Data[index+2]
 	color.Alpha = b.Data[index+3]
+}
+
+func (buf *Buffer) FlipVertically() {
+	pixel := make([]byte, buf.Width*4)
+	bufWidth := buf.Width * 4
+	for row := 0; row < buf.Height; row++ {
+		indexFrom := row * bufWidth
+		indexTo := (buf.Height - row - 1) * bufWidth
+
+		copy(pixel, buf.Data[indexTo:indexTo+bufWidth])
+		copy(buf.Data[indexTo:indexTo+bufWidth], buf.Data[indexFrom:indexFrom+bufWidth])
+		copy(buf.Data[indexFrom:indexFrom+bufWidth], pixel)
+	}
 }

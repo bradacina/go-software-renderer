@@ -17,6 +17,7 @@ func main() {
 
 	texture := tgaToBuffer("xxx.tga")
 	drawObj(o, texture, image)
+	image.FlipVertically()
 	tga.Save(image.Width, image.Height, image.Data, "test.tga")
 }
 
@@ -63,19 +64,19 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 	a, b, c := renderer.AfineVertex{}, renderer.AfineVertex{}, renderer.AfineVertex{}
 
 	// vertex normals
-	an, bn, cn := renderer.Vertex{}, renderer.Vertex{}, renderer.Vertex{}
+	an, bn, cn := renderer.Vector{}, renderer.Vector{}, renderer.Vector{}
 
 	// texture coords
 	at, bt, ct := renderer.Point{}, renderer.Point{}, renderer.Point{}
 
-	light := &renderer.Vector{renderer.Vertex{10.0, 3.0, 10.0}}
+	light := &renderer.Vector{renderer.Vertex{0.0, -1.0, 1.0}}
 
 	renderer.Normalize(light)
 
 	texHeight := float64(texture.Height)
 	texWidth := float64(texture.Width)
 
-	cameraLocation := renderer.Vertex{-10.0, -3.0, -10.0}
+	cameraLocation := renderer.Vertex{-3.0, -3.0, -10.0}
 	cameraDirection := renderer.Vertex{0, 0, 0}
 	cameraUp := renderer.Vector{renderer.Vertex{0, 1.0, 0}}
 
@@ -99,6 +100,7 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 
 	var transA, transB, transC renderer.AfineVertex
 	var postA, postB, postC renderer.Vertex
+	var postAN, postBN, postCN renderer.Vector
 
 	for _, f := range o.Faces {
 		// vertex shader
@@ -130,15 +132,19 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 		vn2Idx := f.VertexNormalIndex[1] - 1
 		vn3Idx := f.VertexNormalIndex[2] - 1
 
-		objVertexToRenderVertex(o.VerticesNormal[vn1Idx], &an)
-		objVertexToRenderVertex(o.VerticesNormal[vn2Idx], &bn)
-		objVertexToRenderVertex(o.VerticesNormal[vn3Idx], &cn)
+		objVertexToRenderVector(o.VerticesNormal[vn1Idx], &an)
+		objVertexToRenderVector(o.VerticesNormal[vn2Idx], &bn)
+		objVertexToRenderVector(o.VerticesNormal[vn3Idx], &cn)
+
+		renderer.Mul3x3WithVector(&camera.NormalMatrix, &an, &postAN)
+		renderer.Mul3x3WithVector(&camera.NormalMatrix, &bn, &postBN)
+		renderer.Mul3x3WithVector(&camera.NormalMatrix, &cn, &postCN)
 
 		// fragment shader
 		//textureShader := renderer.NewTextureShader(&postA, &postB, &postC, &at, &bt, &ct, texture, light)
 		//gb.TexturedTriangle(&postA, &postB, &postC, textureShader)
 
-		gouraudShader := renderer.NewGouraudShader(&postA, &postB, &postC, &an, &bn, &cn, light)
+		gouraudShader := renderer.NewGouraudShader(&postA, &postB, &postC, &postAN, &postBN, &postCN, light)
 		gb.TexturedTriangle(&postA, &postB, &postC, gouraudShader)
 	}
 }
@@ -163,6 +169,12 @@ func objVertexToPoint(ov *obj.Vertex, rv *renderer.Point, halfWidth, halfHeight 
 }
 
 func objVertexToRenderVertex(ov *obj.Vertex, rv *renderer.Vertex) {
+	rv.X = ov.X
+	rv.Y = ov.Y
+	rv.Z = ov.Z
+}
+
+func objVertexToRenderVector(ov *obj.Vertex, rv *renderer.Vector) {
 	rv.X = ov.X
 	rv.Y = ov.Y
 	rv.Z = ov.Z

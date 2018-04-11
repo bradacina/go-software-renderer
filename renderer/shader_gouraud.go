@@ -1,18 +1,18 @@
 package renderer
 
+import "math"
+
 type GouraudShader struct {
 	light        *Vector
 	a, b, c      *Vertex // triangle vertices
-	an, bn, cn   *Vertex // normals of the 3 vertices
+	ai, bi, ci   float64 // light intensity at the 3 vertices
 	shouldIgnore bool
 }
 
-func NewGouraudShader(a, b, c, an, bn, cn *Vertex, light *Vector) *GouraudShader {
-	gs := &GouraudShader{
-		light: light, a: a, b: b, c: c,
-		an: an, bn: bn, cn: cn}
+func NewGouraudShader(a, b, c *Vertex, an, bn, cn, light *Vector) *GouraudShader {
+	gs := &GouraudShader{light: light, a: a, b: b, c: c}
 
-	gs.resolveShouldIgnore()
+	gs.resolveLightIntensity(an, bn, cn)
 
 	return gs
 }
@@ -25,19 +25,14 @@ func (gs *GouraudShader) ShouldIgnore() bool {
 // ShadeFragment returns a color that corresponds to the barycentric coordinates given
 func (gs *GouraudShader) ShadeFragment(u, v, w float64, color *RGBA) {
 	if gs.shouldIgnore {
-		color.Alpha = 0
+		color.Alpha = 255
 		color.Blue = 0
 		color.Green = 0
 		color.Red = 0
 		return
 	}
 
-	normal := Vector{Vertex{
-		X: float64(gs.an.X)*u + float64(gs.bn.X)*v + float64(gs.cn.X)*w,
-		Y: float64(gs.an.Y)*u + float64(gs.bn.Y)*v + float64(gs.cn.Y)*w,
-		Z: float64(gs.an.Z)*u + float64(gs.bn.Z)*v + float64(gs.cn.Z)*w}}
-
-	lightIntensity := DotProduct(&normal, gs.light)
+	lightIntensity := u*gs.ai + v*gs.bi + w*gs.ci
 
 	color.Alpha = 255
 	color.Blue = byte(255 * lightIntensity)
@@ -45,17 +40,21 @@ func (gs *GouraudShader) ShadeFragment(u, v, w float64, color *RGBA) {
 	color.Red = byte(255 * lightIntensity)
 }
 
-func (gs *GouraudShader) resolveShouldIgnore() {
-	v0 := VectorFromVertex(gs.a, gs.b)
-	v1 := VectorFromVertex(gs.a, gs.c)
+func (gs *GouraudShader) resolveLightIntensity(an, bn, cn *Vector) {
 
-	// calculate the normal of the triangle face
-	normal := CrossProduct(v0, v1)
-	Normalize(normal)
+	Normalize(an)
+	Normalize(bn)
+	Normalize(cn)
 
-	lightIntensity := DotProduct(normal, gs.light)
+	gs.ai = DotProduct(an, gs.light)
+	gs.bi = DotProduct(bn, gs.light)
+	gs.ci = DotProduct(cn, gs.light)
 
-	if lightIntensity < 0 {
+	if gs.ai < 0 && gs.bi < 0 && gs.ci < 0 {
 		gs.shouldIgnore = true
 	}
+
+	gs.ai = math.Max(gs.ai, 0)
+	gs.bi = math.Max(gs.bi, 0)
+	gs.ci = math.Max(gs.ci, 0)
 }

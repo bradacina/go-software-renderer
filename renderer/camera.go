@@ -45,7 +45,18 @@ func (c *Camera) LookAt(eye *Vertex, center *Vertex, up *Vector) {
 	c.ModelView.CC = z.Z
 	c.ModelView.CD = -dotVectorVertex(eye, z)
 
+	c.NormalMatrix.AA = x.X
+	c.NormalMatrix.AB = x.Y
+	c.NormalMatrix.AC = x.Z
+	c.NormalMatrix.BA = y.X
+	c.NormalMatrix.BB = y.Y
+	c.NormalMatrix.BC = y.Z
+	c.NormalMatrix.CA = z.X
+	c.NormalMatrix.CB = z.Y
+	c.NormalMatrix.CC = z.Z
+
 	log.Println("ViewModel", c.ModelView)
+	log.Println("NormalMatrix", c.NormalMatrix)
 }
 
 //ViewPort creates a ViewPort matrix that scales

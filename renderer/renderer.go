@@ -76,6 +76,7 @@ type Mat4x4 struct {
 }
 
 type Camera struct {
-	ModelView Mat4x4
-	buffer    Buffer
+	ModelView    Mat4x4
+	NormalMatrix Mat3x3
+	buffer       Buffer
 }
