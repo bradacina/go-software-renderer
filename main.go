@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"math"
 
 	"github.com/bradacina/go-software-renderer/obj"
@@ -91,12 +90,6 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 
 	renderer.Mul4x4(projectionMatrix, &camera.ModelView, &temp)
 	renderer.Mul4x4(viewPortMatrix, &temp, &viewPipeline)
-
-	log.Println("ViewPort", viewPortMatrix)
-	log.Println("Projection", projectionMatrix)
-
-	log.Println("ViewModel x Projection", temp)
-	log.Println("All", viewPipeline)
 
 	var transA, transB, transC renderer.AfineVertex
 	var postA, postB, postC renderer.Vertex

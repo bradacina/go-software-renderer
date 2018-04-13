@@ -1,7 +1,5 @@
 package renderer
 
-import "log"
-
 func NewCamera() *Camera {
 	return &Camera{}
 }
@@ -54,9 +52,6 @@ func (c *Camera) LookAt(eye *Vertex, center *Vertex, up *Vector) {
 	c.NormalMatrix.CA = z.X
 	c.NormalMatrix.CB = z.Y
 	c.NormalMatrix.CC = z.Z
-
-	log.Println("ViewModel", c.ModelView)
-	log.Println("NormalMatrix", c.NormalMatrix)
 }
 
 //ViewPort creates a ViewPort matrix that scales
