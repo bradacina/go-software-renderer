@@ -144,8 +144,9 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 		//textureShader := renderer.NewTextureShader(&postA, &postB, &postC, &at, &bt, &ct, texture, light)
 		//gb.TexturedTriangle(&postA, &postB, &postC, textureShader)
 
-		gouraudShader := renderer.NewGouraudShader(&postA, &postB, &postC, &postAN, &postBN, &postCN, light)
-		gb.TexturedTriangle(&postA, &postB, &postC, gouraudShader)
+		gts := renderer.NewGouraudTextureShader(
+			&postA, &postB, &postC, &postAN, &postBN, &postCN, light, &at, &bt, &ct, texture)
+		gb.TexturedTriangle(&postA, &postB, &postC, gts)
 	}
 }
 

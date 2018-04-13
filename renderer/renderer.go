@@ -80,3 +80,8 @@ type Camera struct {
 	NormalMatrix Mat3x3
 	buffer       Buffer
 }
+
+type Shader interface {
+	ShadeFragment(u, v, w float64, color *RGBA)
+	ShouldIgnore() bool
+}
