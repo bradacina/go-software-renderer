@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"path"
 
 	"github.com/bradacina/go-software-renderer/obj"
 	"github.com/bradacina/go-software-renderer/renderer"
@@ -11,11 +12,15 @@ import (
 func main() {
 
 	image := renderer.NewBuffer(1024, 1024, true)
+	resourceFolder := "resources"
+	africanHeadFolder := "african_head"
 
-	o := obj.Load("african_head.obj")
+	o := obj.Load(path.Join(resourceFolder, africanHeadFolder, "african_head.obj"))
 
-	texture := tgaToBuffer("xxx.tga")
-	drawObj(o, texture, image)
+	texture := tgaToBuffer(path.Join(resourceFolder, africanHeadFolder, "african_head_diffuse.tga"))
+	normalMap := tgaToBuffer(path.Join(resourceFolder, africanHeadFolder, "african_head_nm.tga"))
+
+	drawObj(o, texture, normalMap, image)
 	image.FlipVertically()
 	tga.Save(image.Width, image.Height, image.Data, "test.tga")
 }
@@ -57,7 +62,7 @@ func max(a, b float64) float64 {
 	return b
 }
 
-func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
+func drawObj(o *obj.Obj, texture, normalMap *renderer.Buffer, gb *renderer.Buffer) {
 
 	// 3d model triangle coords
 	a, b, c := renderer.AfineVertex{}, renderer.AfineVertex{}, renderer.AfineVertex{}
@@ -138,7 +143,7 @@ func drawObj(o *obj.Obj, texture *renderer.Buffer, gb *renderer.Buffer) {
 		//gb.TexturedTriangle(&postA, &postB, &postC, textureShader)
 
 		gts := renderer.NewGouraudTextureShader(
-			&postA, &postB, &postC, &postAN, &postBN, &postCN, light, &at, &bt, &ct, texture)
+			&postA, &postB, &postC, &postAN, &postBN, &postCN, light, &at, &bt, &ct, texture, normalMap)
 		gb.TexturedTriangle(&postA, &postB, &postC, gts)
 	}
 }
