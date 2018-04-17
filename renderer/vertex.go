@@ -27,6 +27,20 @@ func MagnitudeSquared(v *Vector) float64 {
 	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
 }
 
+func MulScalar(v *Vector, scalar float64) *Vector {
+	return &Vector{Vertex{
+		X: v.X * scalar,
+		Y: v.Y * scalar,
+		Z: v.Z * scalar}}
+}
+
+func Minus(v1, v2 *Vector) *Vector {
+	return &Vector{Vertex{
+		X: v1.X - v2.X,
+		Y: v1.Y - v2.Y,
+		Z: v1.Z - v2.Z}}
+}
+
 // Normalize will normalize the length of a Vector
 func Normalize(v *Vector) {
 	mag := math.Sqrt(MagnitudeSquared(v))
@@ -34,4 +48,8 @@ func Normalize(v *Vector) {
 	v.X /= mag
 	v.Y /= mag
 	v.Z /= mag
+}
+
+func Flip(v *Vector) *Vector {
+	return MulScalar(v, -1)
 }

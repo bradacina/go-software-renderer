@@ -41,7 +41,7 @@ func Load(filename string) (int, int, int, *[]byte) {
 		log.Fatal("When reading colorMapType", err)
 	}
 
-	if colorMapType != 0 {
+	if colorMapType != 0 && colorMapType != 1 {
 		log.Fatal("TGA color map type not supported", colorMapType)
 	}
 
@@ -50,7 +50,7 @@ func Load(filename string) (int, int, int, *[]byte) {
 		log.Fatal("When reading imageType", err)
 	}
 
-	if imageType != 2 {
+	if imageType != 2 && imageType != 1 {
 		log.Fatal("TGA image type not supported", imageType)
 	}
 
@@ -91,7 +91,7 @@ func Load(filename string) (int, int, int, *[]byte) {
 		log.Fatal("When reading pixelDepth", err)
 	}
 
-	if pixelDepth != 32 && pixelDepth != 24 {
+	if pixelDepth != 32 && pixelDepth != 24 && pixelDepth != 8 {
 		log.Fatal("TGA pixel depth is not supported", pixelDepth)
 	}
 
@@ -127,6 +127,22 @@ func Load(filename string) (int, int, int, *[]byte) {
 				data[idx] = 255 // alpha channel
 				idx++
 			}
+		}
+	}
+
+	// triplicate the colors
+	if bytesPerPixel == 1 {
+		dataOld := data
+		data = make([]byte, int(width)*int(height)*4)
+
+		idx := 0
+		for _, v := range dataOld {
+			data[idx] = v
+			data[idx+1] = v
+			data[idx+2] = v
+			data[idx+3] = 255
+
+			idx += 4
 		}
 	}
 

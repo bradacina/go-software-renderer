@@ -19,8 +19,9 @@ func main() {
 
 	texture := tgaToBuffer(path.Join(resourceFolder, africanHeadFolder, "african_head_diffuse.tga"))
 	normalMap := tgaToBuffer(path.Join(resourceFolder, africanHeadFolder, "african_head_nm.tga"))
+	specMap := tgaToBuffer(path.Join(resourceFolder, africanHeadFolder, "african_head_spec.tga"))
 
-	drawObj(o, texture, normalMap, image)
+	drawObj(o, texture, normalMap, specMap, image)
 	image.FlipVertically()
 	tga.Save(image.Width, image.Height, image.Data, "test.tga")
 }
@@ -62,7 +63,7 @@ func max(a, b float64) float64 {
 	return b
 }
 
-func drawObj(o *obj.Obj, texture, normalMap *renderer.Buffer, gb *renderer.Buffer) {
+func drawObj(o *obj.Obj, texture, normalMap, specMap *renderer.Buffer, gb *renderer.Buffer) {
 
 	// 3d model triangle coords
 	a, b, c := renderer.AfineVertex{}, renderer.AfineVertex{}, renderer.AfineVertex{}
@@ -90,11 +91,11 @@ func drawObj(o *obj.Obj, texture, normalMap *renderer.Buffer, gb *renderer.Buffe
 	projectionMatrix := renderer.Ortographic(-1, 1, -1, 1, 0, 100)
 	viewPortMatrix := renderer.ViewPort(0, 0, 1024, 1024)
 
-	var temp renderer.Mat4x4
+	var tempMat renderer.Mat4x4
 	var viewPipeline renderer.Mat4x4
 
-	renderer.Mul4x4(projectionMatrix, &camera.ModelView, &temp)
-	renderer.Mul4x4(viewPortMatrix, &temp, &viewPipeline)
+	renderer.Mul4x4(projectionMatrix, &camera.ModelView, &tempMat)
+	renderer.Mul4x4(viewPortMatrix, &tempMat, &viewPipeline)
 
 	var transA, transB, transC renderer.AfineVertex
 	var postA, postB, postC renderer.Vertex
@@ -143,7 +144,8 @@ func drawObj(o *obj.Obj, texture, normalMap *renderer.Buffer, gb *renderer.Buffe
 		//gb.TexturedTriangle(&postA, &postB, &postC, textureShader)
 
 		gts := renderer.NewGouraudTextureShader(
-			&postA, &postB, &postC, &postAN, &postBN, &postCN, light, &at, &bt, &ct, texture, normalMap)
+			&postA, &postB, &postC, &postAN, &postBN, &postCN, light, &at, &bt, &ct,
+			texture, normalMap, specMap)
 		gb.TexturedTriangle(&postA, &postB, &postC, gts)
 	}
 }
@@ -184,4 +186,11 @@ func objVertexToRenderAfineVertex(ov *obj.Vertex, rv *renderer.AfineVertex) {
 	rv.Y = ov.Y
 	rv.Z = ov.Z
 	rv.W = 1
+}
+
+func Mat4x4toMat3x3(mat renderer.Mat4x4) *renderer.Mat3x3 {
+	return &renderer.Mat3x3{
+		AA: mat.AA, AB: mat.AB, AC: mat.AC,
+		BA: mat.BA, BB: mat.BB, BC: mat.BC,
+		CA: mat.CA, CB: mat.CB, CC: mat.CC}
 }
