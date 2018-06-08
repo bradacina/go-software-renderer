@@ -9,10 +9,10 @@ type GouraudTextureShader struct {
 	a, b, c      *Vertex // triangle vertices
 	ai, bi, ci   float64 // light intensity at the 3 vertices
 	at, bt, ct   *Point  // texture coordinates at the 3 vertice
-	texture      *Buffer
+	texture      *Buffer // texture containing the color to apply
 	normalMap    *Buffer // texture containing normal map (if present)
 	specMap      *Buffer // texture containing specular map (if present)
-	shouldIgnore bool
+	shouldIgnore bool    // should this face be ignored because it's a backface
 }
 
 func NewGouraudTextureShader(
@@ -64,7 +64,7 @@ func (gs *GouraudTextureShader) ShadeFragment(u, v, w float64, color *RGBA) {
 	var lightIntensity float64
 	var normal Vector
 
-	// light
+	// light (either based on normal map or on vertex normals)
 	if gs.normalMap != nil {
 		gs.normalMap.Read(col, row, color)
 		normal = Vector{Vertex{
@@ -75,6 +75,12 @@ func (gs *GouraudTextureShader) ShadeFragment(u, v, w float64, color *RGBA) {
 		Normalize(&normal)
 
 		// TODO: transform normals with P-MV inverse matrix
+		// Since we have transformed our object with a P-MV matrix and
+		// we're looking at it from a different angle, it would be correct
+		// to also transform the light to our camera's point of reference
+		// as well as all normals of the model.
+		// This way we can calculate how much of the reflected ray come
+		// towards the camera (reflected.Z) and add specularity accordingly
 
 		lightIntensity = DotProduct(&normal, gs.light)
 
